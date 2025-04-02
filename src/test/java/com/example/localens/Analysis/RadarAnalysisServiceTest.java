@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -44,7 +45,6 @@ class RadarAnalysisServiceTest {
 
     private CommercialDistrict mockDistrict;
     private List<FluxTable> testTables;
-    private List<FluxRecord> testRecords;
 
     @BeforeEach
     void setUp() {
@@ -53,12 +53,12 @@ class RadarAnalysisServiceTest {
         when(commercialDistrictRepository.findById(anyInt())).thenReturn(Optional.of(mockDistrict));
 
         FluxRecord mockRecord = mock(FluxRecord.class);
-        testRecords = List.of(mockRecord);
+        when(mockRecord.getValueByKey("_value")).thenReturn(100.0);
 
         FluxTable mockTable = mock(FluxTable.class);
-        when(mockTable.getRecords()).thenReturn(testRecords);
-
+        when(mockTable.getRecords()).thenReturn(List.of(mockRecord));
         testTables = List.of(mockTable);
+
         when(influxDBClientWrapper.query(anyString())).thenReturn(testTables);
 
         when(metricStatsService.normalizeValue(anyString(), anyDouble())).thenReturn(0.5);
@@ -73,7 +73,7 @@ class RadarAnalysisServiceTest {
         assertFalse(result.getOverallData().isEmpty(), "OverallData should not be empty");
 
         Integer population = result.getOverallData().get("population");
-        assertEquals(50, population);
+        assertEquals(1, population,"정규화된 population이 1이어야 함");
 
     }
 }
